@@ -67,14 +67,16 @@ func (h *Handler) Authenticate(ctx context.Context) int {
 	}
 
 	// Step 3: Display verification info to user
-	h.IO.DisplayMessage(fmt.Sprintf("\nTo sign in, open your browser and visit:\n  %s\n\nEnter the code: %s\n", deviceResp.VerificationURI, deviceResp.UserCode))
+	if err := h.IO.DisplayMessage(fmt.Sprintf("\nTo sign in, open your browser and visit:\n  %s\n\nEnter the code: %s\n", deviceResp.VerificationURI, deviceResp.UserCode)); err != nil {
+		h.IO.LogWarn(fmt.Sprintf("failed to display verification info: %v", err))
+	}
 	h.IO.LogDebug(fmt.Sprintf("device code issued, expires in %d seconds", deviceResp.ExpiresIn))
 
 	// Step 4: Poll for token
 	tokenResp, err := h.OIDCClient.PollForToken(ctx, h.Config.ClientID, h.Config.ClientSecret, deviceResp.DeviceCode, h.Config.PollIntervalSeconds, h.Config.PollTimeoutSeconds)
 	if err != nil {
 		h.IO.LogError(fmt.Sprintf("failed to obtain token: %v", err))
-		h.IO.DisplayMessage("Authentication failed. Please try again.")
+		_ = h.IO.DisplayMessage("Authentication failed. Please try again.") // best-effort user message
 		return ExitAuthError
 	}
 	h.IO.LogInfo("token received, validating...")
@@ -83,7 +85,7 @@ func (h *Handler) Authenticate(ctx context.Context) int {
 	claims, err := h.TokenValidator.ValidateIDToken(ctx, tokenResp.IDToken, h.Config.ClientID)
 	if err != nil {
 		h.IO.LogError(fmt.Sprintf("token validation failed: %v", err))
-		h.IO.DisplayMessage("Authentication failed: invalid token.")
+		_ = h.IO.DisplayMessage("Authentication failed: invalid token.") // best-effort user message
 		return ExitAuthError
 	}
 	h.IO.LogInfo(fmt.Sprintf("token validated for email: %s", claims.Email))
@@ -92,18 +94,18 @@ func (h *Handler) Authenticate(ctx context.Context) int {
 	mappedUser, err := h.UserMapper.MapEmailToUser(claims.Email)
 	if err != nil {
 		h.IO.LogError(fmt.Sprintf("user mapping failed: %v", err))
-		h.IO.DisplayMessage("Authentication failed: user not authorized.")
+		_ = h.IO.DisplayMessage("Authentication failed: user not authorized.") // best-effort user message
 		return ExitAuthError
 	}
 
 	// Step 7: Compare mapped username to PAM username
 	if mappedUser != username {
 		h.IO.LogError(fmt.Sprintf("username mismatch: PAM user %q != mapped user %q", username, mappedUser))
-		h.IO.DisplayMessage("Authentication failed: username mismatch.")
+		_ = h.IO.DisplayMessage("Authentication failed: username mismatch.") // best-effort user message
 		return ExitAuthError
 	}
 
 	h.IO.LogInfo(fmt.Sprintf("authentication successful for user: %s", username))
-	h.IO.DisplayMessage("Authentication successful!")
+	_ = h.IO.DisplayMessage("Authentication successful!") // best-effort user message
 	return ExitSuccess
 }

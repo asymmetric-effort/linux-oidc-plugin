@@ -583,6 +583,26 @@ func TestFetchJWKS_InvalidURL(t *testing.T) {
 	}
 }
 
+// TestFetchJWKS_ReadBodyError uses errReadCloser and roundTripFunc defined in
+// device_test.go to test the io.ReadAll error path in FetchJWKS.
+func TestFetchJWKS_ReadBodyError(t *testing.T) {
+	transport := roundTripFunc(func(req *http.Request) (*http.Response, error) {
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Body:       errReadCloser{},
+			Header:     make(http.Header),
+		}, nil
+	})
+	v := NewTokenValidator("http://jwks", &http.Client{Transport: transport})
+	err := v.FetchJWKS(context.Background())
+	if err == nil {
+		t.Fatal("expected error for body read failure")
+	}
+	if !strings.Contains(err.Error(), "reading JWKS response") {
+		t.Errorf("expected 'reading JWKS response' error, got %q", err.Error())
+	}
+}
+
 func TestValidateIDToken_MissingKid(t *testing.T) {
 	// Create a JWT without a kid header to hit the "missing kid" path
 	jwk := rsaPublicKeyToJWK(&testKey.PublicKey, testKid)

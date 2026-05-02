@@ -39,8 +39,12 @@ func run(args []string) int {
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
 	go func() {
-		<-sigCh
-		cancel()
+		select {
+		case <-sigCh:
+			cancel()
+		case <-ctx.Done():
+		}
+		signal.Stop(sigCh)
 	}()
 
 	oidcClient := oidc.NewClient(nil, cfg.DeviceEndpoint, cfg.TokenEndpoint)

@@ -379,6 +379,39 @@ func TestAuthenticate_ReadUsernameNoEnvNoStdin(t *testing.T) {
 	}
 }
 
+// errWriter is an io.Writer that always returns an error.
+type errWriter struct{}
+
+func (errWriter) Write([]byte) (int, error) { return 0, fmt.Errorf("write error") }
+
+func TestAuthenticate_DisplayMessageError(t *testing.T) {
+	// When stdout fails to write, the handler should still succeed (display
+	// errors are best-effort) and log a warning about the display failure.
+	t.Setenv("PAM_USER", "testuser")
+
+	client := &mockDeviceFlowClient{
+		deviceCodeResp: testDeviceResp(),
+		tokenResp:      testTokenResp(),
+	}
+	validator := &mockTokenValidator{claims: testClaims()}
+	mapper := &mockUserMapper{username: "testuser"}
+
+	stderrBuf := &bytes.Buffer{}
+	failWriter := errWriter{}
+	io := NewIOHandler(bytes.NewBufferString(""), failWriter, stderrBuf, "debug")
+	cfg := testConfig()
+
+	h := NewHandler(cfg, client, validator, mapper, io)
+	exitCode := h.Authenticate(context.Background())
+
+	if exitCode != ExitSuccess {
+		t.Errorf("expected ExitSuccess (%d), got %d", ExitSuccess, exitCode)
+	}
+	if !strings.Contains(stderrBuf.String(), "failed to display verification info") {
+		t.Errorf("stderr should contain display failure warning, got: %s", stderrBuf.String())
+	}
+}
+
 func TestExitCodeConstants(t *testing.T) {
 	if ExitSuccess != 0 {
 		t.Errorf("ExitSuccess should be 0, got %d", ExitSuccess)

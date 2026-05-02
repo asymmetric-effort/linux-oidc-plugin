@@ -32,11 +32,11 @@ messages are prefixed with their level:
 
 ```
 [DEBUG] starting OIDC authentication
-[INFO]  authenticating user: alice
+[INFO] authenticating user: alice
 [DEBUG] device code issued, expires in 1800 seconds
-[INFO]  token received, validating...
-[INFO]  token validated for email: alice@example.com
-[INFO]  authentication successful for user: alice
+[INFO] token received, validating...
+[INFO] token validated for email: alice@example.com
+[INFO] authentication successful for user: alice
 ```
 
 View logs in real time:
@@ -81,7 +81,7 @@ echo $?
 
 **Symptom**: Exit code 2. Log message:
 ```
-[ERROR] reading config file /etc/pam-oidc/config.yaml: open /etc/pam-oidc/config.yaml: no such file or directory
+[ERROR] failed to load config: reading config file /etc/pam-oidc/config.yaml: open /etc/pam-oidc/config.yaml: no such file or directory
 ```
 
 **Solution**: Create the config file or set `PAM_OIDC_CONFIG` to the correct
@@ -98,9 +98,9 @@ sudo vim /etc/pam-oidc/config.yaml
 
 **Symptom**: Exit code 2. Log messages such as:
 ```
-[ERROR] client_id is required
-[ERROR] at least one allowed_domain is required
-[ERROR] user_mapping.type must be 'email_prefix' or 'static', got "unknown"
+[ERROR] failed to load config: client_id is required
+[ERROR] failed to load config: at least one allowed_domain is required
+[ERROR] failed to load config: user_mapping.type must be 'email_prefix' or 'static', got "unknown"
 ```
 
 **Solution**: Fix the config file. Required fields:
@@ -117,7 +117,7 @@ allowed_domains:
 
 **Symptom**: Exit code 2. Log message:
 ```
-[ERROR] reading config file /etc/pam-oidc/config.yaml: open /etc/pam-oidc/config.yaml: permission denied
+[ERROR] failed to load config: reading config file /etc/pam-oidc/config.yaml: open /etc/pam-oidc/config.yaml: permission denied
 ```
 
 **Solution**: The binary runs as the user calling PAM (typically root for

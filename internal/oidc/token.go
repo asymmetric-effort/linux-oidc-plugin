@@ -129,6 +129,9 @@ func (v *TokenValidator) ValidateIDToken(ctx context.Context, rawToken string, e
 		return nil, fmt.Errorf("parsing/validating token: %w", err)
 	}
 
+	// Defensive type assertion: jwt.Parser always returns jwt.MapClaims when
+	// no custom claims struct is provided, so the !ok branch is unreachable in
+	// practice. It remains as a safety guard against future jwt library changes.
 	mapClaims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
 		return nil, fmt.Errorf("invalid token claims")

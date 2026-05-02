@@ -3,6 +3,7 @@ package oidc
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -491,6 +492,59 @@ func TestPollError_Error(t *testing.T) {
 	expected := "authorization_pending: waiting for user"
 	if pe.Error() != expected {
 		t.Errorf("expected %q, got %q", expected, pe.Error())
+	}
+}
+
+// errReadCloser is an io.ReadCloser whose Read always fails. This is used to
+// test the io.ReadAll error path inside RequestDeviceCode and requestToken.
+// In production, this path triggers when the HTTP response body is truncated
+// or the connection drops mid-read -- an edge case that is difficult to
+// reproduce with httptest but is reachable in real network conditions.
+type errReadCloser struct{}
+
+func (errReadCloser) Read([]byte) (int, error) { return 0, errors.New("read body error") }
+func (errReadCloser) Close() error              { return nil }
+
+// roundTripFunc adapts a function to http.RoundTripper for injecting custom responses.
+type roundTripFunc func(*http.Request) (*http.Response, error)
+
+func (f roundTripFunc) RoundTrip(req *http.Request) (*http.Response, error) { return f(req) }
+
+func TestRequestDeviceCode_ReadBodyError(t *testing.T) {
+	// Inject an HTTP response with a body that always fails on Read.
+	transport := roundTripFunc(func(req *http.Request) (*http.Response, error) {
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Body:       errReadCloser{},
+			Header:     make(http.Header),
+		}, nil
+	})
+	c := NewClient(&http.Client{Transport: transport}, "http://device", "")
+	_, err := c.RequestDeviceCode(context.Background(), "client", "", []string{"openid"})
+	if err == nil {
+		t.Fatal("expected error for body read failure")
+	}
+	if !strings.Contains(err.Error(), "reading device code response") {
+		t.Errorf("expected 'reading device code response' error, got %q", err.Error())
+	}
+}
+
+func TestRequestToken_ReadBodyError(t *testing.T) {
+	// Inject an HTTP response with a body that always fails on Read.
+	transport := roundTripFunc(func(req *http.Request) (*http.Response, error) {
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Body:       errReadCloser{},
+			Header:     make(http.Header),
+		}, nil
+	})
+	c := NewClient(&http.Client{Transport: transport}, "", "http://token")
+	_, err := c.requestToken(context.Background(), "client", "", "dev-code")
+	if err == nil {
+		t.Fatal("expected error for body read failure")
+	}
+	if !strings.Contains(err.Error(), "reading token response") {
+		t.Errorf("expected 'reading token response' error, got %q", err.Error())
 	}
 }
 
