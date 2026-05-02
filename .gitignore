@@ -1,0 +1,17 @@
+bin/
+*.out
+coverage.out
+coverage.html
+vendor/
+*.exe
+*.so
+*.dylib
+*.test
+.env
+.env.*
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+dist/
