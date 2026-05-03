@@ -1,0 +1,54 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: asymmetric-effort/actions/actions/go-tooling@v1.0.8
+        with:
+          go-version-file: go.mod
+
+      - name: Run tests
+        run: go test -v -race -count=1 -failfast ./...
+
+      - name: Build linux/amd64
+        env:
+          GOOS: linux
+          GOARCH: amd64
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          go build -ldflags "-X main.version=${VERSION}" \
+            -o ./bin/pam-oidc-linux-amd64 ./cmd/pam-oidc
+          cd bin && tar -czf pam-oidc-${VERSION}-linux-amd64.tar.gz pam-oidc-linux-amd64
+
+      - name: Build linux/arm64
+        env:
+          GOOS: linux
+          GOARCH: arm64
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          go build -ldflags "-X main.version=${VERSION}" \
+            -o ./bin/pam-oidc-linux-arm64 ./cmd/pam-oidc
+          cd bin && tar -czf pam-oidc-${VERSION}-linux-arm64.tar.gz pam-oidc-linux-arm64
+
+      - name: Create GitHub Release
+        uses: asymmetric-effort/actions/actions/gh-release@v1.0.8
+        with:
+          tag_name: ${{ github.ref_name }}
+          generate_release_notes: "true"
+          files: |
+            ./bin/pam-oidc-*-linux-amd64.tar.gz
+            ./bin/pam-oidc-*-linux-arm64.tar.gz

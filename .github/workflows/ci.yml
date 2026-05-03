@@ -1,0 +1,101 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: asymmetric-effort/actions/actions/go-tooling@v1.0.8
+        with:
+          go-version-file: go.mod
+
+      - name: Run go vet
+        run: go vet -v ./...
+
+      - name: Run staticcheck
+        run: |
+          go install honnef.co/go/tools/cmd/staticcheck@latest
+          staticcheck ./...
+
+      - name: Run govulncheck
+        run: govulncheck ./...
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: asymmetric-effort/actions/actions/go-tooling@v1.0.8
+        with:
+          go-version-file: go.mod
+
+      - name: Run tests
+        run: go test -v -race -count=1 -failfast -coverprofile=coverage.out ./...
+
+      - name: Check coverage threshold
+        run: |
+          COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | tr -d '%')
+          echo "Total coverage: ${COVERAGE}%"
+          if (( $(echo "$COVERAGE < 98.0" | bc -l) )); then
+            echo "::error::Coverage ${COVERAGE}% is below 98% minimum"
+            exit 1
+          fi
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.out
+
+  build:
+    name: Build (${{ matrix.goos }}/${{ matrix.goarch }})
+    runs-on: ubuntu-latest
+    needs: test
+    strategy:
+      matrix:
+        include:
+          - goos: linux
+            goarch: amd64
+          - goos: linux
+            goarch: arm64
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: asymmetric-effort/actions/actions/go-tooling@v1.0.8
+        with:
+          go-version-file: go.mod
+
+      - name: Build
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+        run: |
+          VERSION=$(cat VERSION)
+          go build -ldflags "-X main.version=${VERSION}" \
+            -o ./bin/pam-oidc-${{ matrix.goos }}-${{ matrix.goarch }} \
+            ./cmd/pam-oidc
+
+      - name: Upload binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: pam-oidc-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: ./bin/pam-oidc-${{ matrix.goos }}-${{ matrix.goarch }}
