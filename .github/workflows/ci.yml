@@ -59,7 +59,7 @@ jobs:
           fi
 
       - name: Upload coverage artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: coverage-report
           path: coverage.out
@@ -95,7 +95,7 @@ jobs:
             ./cmd/pam-oidc
 
       - name: Upload binary
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: pam-oidc-${{ matrix.goos }}-${{ matrix.goarch }}
           path: ./bin/pam-oidc-${{ matrix.goos }}-${{ matrix.goarch }}
