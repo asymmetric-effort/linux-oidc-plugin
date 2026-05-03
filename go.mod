@@ -1,4 +1,4 @@
-module github.com/linux-oidc-plugin/linux-oidc-plugin
+module github.com/asymmetric-effort/linux-oidc-plugin
 
 go 1.26.2
 

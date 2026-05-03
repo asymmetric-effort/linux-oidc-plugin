@@ -1,9 +1,9 @@
 # Linux PAM OIDC Plugin
 
 <!-- Badges placeholder -->
-<!-- [![Build Status](https://img.shields.io/github/actions/workflow/status/linux-oidc-plugin/linux-oidc-plugin/ci.yml?branch=main)](https://github.com/linux-oidc-plugin/linux-oidc-plugin/actions) -->
-<!-- [![Coverage](https://img.shields.io/codecov/c/github/linux-oidc-plugin/linux-oidc-plugin)](https://codecov.io/gh/linux-oidc-plugin/linux-oidc-plugin) -->
-<!-- [![Go Report Card](https://goreportcard.com/badge/github.com/linux-oidc-plugin/linux-oidc-plugin)](https://goreportcard.com/report/github.com/linux-oidc-plugin/linux-oidc-plugin) -->
+<!-- [![Build Status](https://img.shields.io/github/actions/workflow/status/asymmetric-effort/linux-oidc-plugin/ci.yml?branch=main)](https://github.com/asymmetric-effort/linux-oidc-plugin/actions) -->
+<!-- [![Coverage](https://img.shields.io/codecov/c/github/asymmetric-effort/linux-oidc-plugin)](https://codecov.io/gh/asymmetric-effort/linux-oidc-plugin) -->
+<!-- [![Go Report Card](https://goreportcard.com/badge/github.com/asymmetric-effort/linux-oidc-plugin)](https://goreportcard.com/report/github.com/asymmetric-effort/linux-oidc-plugin) -->
 <!-- [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE.txt) -->
 
 A Linux PAM module that authenticates users via Google OIDC using the OAuth 2.0
@@ -97,7 +97,7 @@ with their Google account, and the PAM session is granted.
 ### 1. Build
 
 ```bash
-git clone https://github.com/linux-oidc-plugin/linux-oidc-plugin.git
+git clone https://github.com/asymmetric-effort/linux-oidc-plugin.git
 cd linux-oidc-plugin
 make build
 ```

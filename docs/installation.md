@@ -18,7 +18,7 @@
 ### Clone and Build
 
 ```bash
-git clone https://github.com/linux-oidc-plugin/linux-oidc-plugin.git
+git clone https://github.com/asymmetric-effort/linux-oidc-plugin.git
 cd linux-oidc-plugin
 make build
 ```

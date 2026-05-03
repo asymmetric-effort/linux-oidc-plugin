@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/linux-oidc-plugin/linux-oidc-plugin/internal/config"
-	"github.com/linux-oidc-plugin/linux-oidc-plugin/internal/oidc"
+	"github.com/asymmetric-effort/linux-oidc-plugin/internal/config"
+	"github.com/asymmetric-effort/linux-oidc-plugin/internal/oidc"
 )
 
 const (

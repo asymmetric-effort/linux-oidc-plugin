@@ -7,10 +7,10 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/linux-oidc-plugin/linux-oidc-plugin/internal/config"
-	"github.com/linux-oidc-plugin/linux-oidc-plugin/internal/oidc"
-	"github.com/linux-oidc-plugin/linux-oidc-plugin/internal/pam"
-	"github.com/linux-oidc-plugin/linux-oidc-plugin/internal/user"
+	"github.com/asymmetric-effort/linux-oidc-plugin/internal/config"
+	"github.com/asymmetric-effort/linux-oidc-plugin/internal/oidc"
+	"github.com/asymmetric-effort/linux-oidc-plugin/internal/pam"
+	"github.com/asymmetric-effort/linux-oidc-plugin/internal/user"
 )
 
 var version = "dev"
