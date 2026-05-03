@@ -26,7 +26,7 @@ make release    # Bump patch version, build linux/amd64 + linux/arm64
 
 ## Conventions
 
-- Go 1.24+
+- Go 1.26+
 - No CGo - pure Go for clean cross-compilation
 - All packages must have `_test.go` files; target 98%+ coverage
 - Use `internal/` to prevent external imports
